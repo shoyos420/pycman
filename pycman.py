@@ -1,6 +1,6 @@
 
 #libreria pygame
-import pygame, sys, os, random
+import pygame, sys, os, random, time
 from pygame.locals import *
 
 #direccionamos nuestra carpeta para mejorar el orden
@@ -13,6 +13,9 @@ pygame.init()
 window = pygame.display.set_mode((1, 1))
 pygame.display.set_caption("Pycman")
 screen = pygame.display.get_surface()
+background = pygame.Surface(screen.get_size())
+background = background.convert()
+background.fill((250, 250, 250))
 
 
 ##______________/ Clase Pacman \____________________##
@@ -28,6 +31,9 @@ class pacman ():
     def __init__ (self):
         self.x = 0
         self.y = 0
+
+        self.velx = 0
+        self.vely = 16
 
 
 
@@ -53,7 +59,12 @@ class pacman ():
 
     def Draw (self):
 
-        screen.blit (self.anim_pacmanD[3], (self.x+300,self.y+200))
+        screen.blit (self.anim_pacmanD[3], (self.x,self.y))
+
+    def Move (self):
+        self.x += self.velx
+        self.y += self.vely
+
 
 
 
@@ -61,20 +72,41 @@ class pacman ():
 
 #______________/ game init \____________________________
 
-screenSize = (400, 500)
-window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
-player = pacman()
+def main():
 
-while 1:
 
-    event=pygame.event.wait()
-    player.Draw()
+    screenSize = (400, 500)
+    window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
+    player = pacman()
+
+
+
+    screen.blit(background, (0, 0))
     pygame.display.flip()
-    if event == pygame.QUIT:
-        break
+
+    player.Draw()
+    player.Move()
 
 
-pygame.quit()
+
+    while 1:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                return
+
+        #time.sleep(0.1)
 
 
-clock.tick (60)
+
+        screen.blit(background, (player.x , player.y))
+        player.Draw()
+        player.Move()
+        pygame.display.flip()
+
+
+
+
+
+
+
+if __name__ == '__main__': main()
