@@ -13,9 +13,9 @@ pygame.init()
 window = pygame.display.set_mode((1, 1))
 pygame.display.set_caption("Pycman")
 screen = pygame.display.get_surface()
-background = pygame.Surface(screen.get_size())
-background = background.convert()
-background.fill((250, 250, 250))
+##background = pygame.Surface(screen.get_size())
+##background = background.convert()
+##background.fill((250, 250, 250))
 
 
 ##______________/ Clase Pacman \____________________##
@@ -34,6 +34,8 @@ class pacman ():
 
         self.velx = 0
         self.vely = 16
+
+        self.animFrame=1
 
 
 
@@ -59,7 +61,27 @@ class pacman ():
 
     def Draw (self):
 
-        screen.blit (self.anim_pacmanD[3], (self.x,self.y))
+        if self.velx > 0:
+            self.anim_pacmanCurrent = self.anim_pacmanR
+        elif self.velx < 0:
+            self.anim_pacmanCurrent = self.anim_pacmanL
+        elif self.vely > 0:
+            self.anim_pacmanCurrent = self.anim_pacmanD
+        elif self.vely < 0:
+            self.anim_pacmanCurrent = self.anim_pacmanU
+        
+
+
+        screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.x, self.y ))
+        #screen.blit (self.anim_pacmanD[3], (self.x,self.y))
+
+        if not self.velx == 0 or not self.vely == 0:
+            # only Move mouth when pacman is moving
+            self.animFrame += 1
+
+        if self.animFrame == 9:
+            # wrap to beginning
+            self.animFrame = 1
 
     def Move (self):
         self.x += self.velx
@@ -81,7 +103,7 @@ def main():
 
 
 
-    screen.blit(background, (0, 0))
+
     pygame.display.flip()
 
     player.Draw()
@@ -90,15 +112,16 @@ def main():
 
 
     while 1:
+        screen.fill((0,0,0))
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
 
-        #time.sleep(0.1)
+        time.sleep(0.1)
 
 
 
-        screen.blit(background, (player.x , player.y))
+
         player.Draw()
         player.Move()
         pygame.display.flip()
