@@ -26,6 +26,7 @@ screen = pygame.display.get_surface()
 
 
 
+
 class pacman ():
 
     def __init__ (self):
@@ -33,7 +34,9 @@ class pacman ():
         self.y = 0
 
         self.velx = 0
-        self.vely = 16
+        self.vely = 0
+
+        self.speed=1
 
         self.animFrame=1
 
@@ -69,18 +72,19 @@ class pacman ():
             self.anim_pacmanCurrent = self.anim_pacmanD
         elif self.vely < 0:
             self.anim_pacmanCurrent = self.anim_pacmanU
-        
+        else :
+            self.anim_pacmanCurrent = self.anim_pacmanR
 
 
         screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.x, self.y ))
         #screen.blit (self.anim_pacmanD[3], (self.x,self.y))
 
         if not self.velx == 0 or not self.vely == 0:
-            # only Move mouth when pacman is moving
+            # solo anima la boca cuando pacman se mueva
             self.animFrame += 1
 
         if self.animFrame == 9:
-            # wrap to beginning
+            # termina la animacion e inicia nuevamente
             self.animFrame = 1
 
     def Move (self):
@@ -88,27 +92,53 @@ class pacman ():
         self.y += self.vely
 
 
+#______________/ entradas \____________________________
+
+def CheckInputs():
+
+
+    if pygame.key.get_pressed()[ pygame.K_RIGHT ] :
+
+        player.velx = player.speed
+        player.vely = 0
+
+    elif pygame.key.get_pressed()[ pygame.K_LEFT ] :
+
+        player.velx = -player.speed
+        player.vely = 0
+
+    elif pygame.key.get_pressed()[ pygame.K_DOWN ] :
+        player.velx = 0
+        player.vely = player.speed
+
+    elif pygame.key.get_pressed()[ pygame.K_UP ] :
+
+        player.velx = 0
+        player.vely = -player.speed
+
+
+    if pygame.key.get_pressed()[ pygame.K_ESCAPE ]:
+        sys.exit(0)
+
 
 
 
 
 #______________/ game init \____________________________
 
+player = pacman()
+
 def main():
 
 
     screenSize = (400, 500)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
-    player = pacman()
+
 
 
 
 
     pygame.display.flip()
-
-    player.Draw()
-    player.Move()
-
 
 
     while 1:
@@ -117,7 +147,7 @@ def main():
             if event.type == QUIT:
                 return
 
-        time.sleep(0.1)
+
 
 
 
@@ -125,8 +155,8 @@ def main():
         player.Draw()
         player.Move()
         pygame.display.flip()
-
-
+        CheckInputs()
+        clock.tick (60)
 
 
 
