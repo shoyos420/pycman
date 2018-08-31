@@ -13,9 +13,9 @@ pygame.init()
 window = pygame.display.set_mode((1, 1))
 pygame.display.set_caption("Pycman")
 screen = pygame.display.get_surface()
-##background = pygame.Surface(screen.get_size())
-##background = background.convert()
-##background.fill((250, 250, 250))
+background = pygame.Surface(screen.get_size())
+background = background.convert()
+background.fill((250, 250, 250))
 
 
 ##______________/ Clase Pacman \____________________##
@@ -30,8 +30,8 @@ screen = pygame.display.get_surface()
 class pacman ():
 
     def __init__ (self):
-        self.x = 0
-        self.y = 0
+        self.x = 160
+        self.y = 240
 
         self.velx = 0
         self.vely = 0
@@ -92,6 +92,60 @@ class pacman ():
         self.y += self.vely
 
 
+
+
+class map():
+    def __init__ (self):
+        self.drawx=0
+        self.drawy=0
+        self.wall= pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall.gif")).convert()
+
+
+
+
+
+
+
+
+
+
+    def draw(self, lvl):
+
+        screen.fill((0,0,0))
+
+        file = open(os.path.join(SCRIPT_PATH,"res","levels",str(lvl) + ".txt"), 'r')
+
+        for line in file:
+            self.drawx=0
+            for caracter in line:
+                if caracter == '#':
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-horiz.gif")).convert()
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
+                if caracter == '$':
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-vert.gif")).convert()
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
+                if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-edge" + caracter + ".gif")).convert()
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
+                self.drawx+=16
+            self.drawy+=16
+
+        self.drawy=0
+        self.drawx=0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #______________/ entradas \____________________________
 
 def CheckInputs():
@@ -127,22 +181,24 @@ def CheckInputs():
 #______________/ game init \____________________________
 
 player = pacman()
+mapa= map()
 
 def main():
 
 
-    screenSize = (400, 500)
+    screenSize = (320, 480)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
 
 
 
 
 
-    pygame.display.flip()
+
 
 
     while 1:
-        screen.fill((0,0,0))
+
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
@@ -151,9 +207,10 @@ def main():
 
 
 
-
+        mapa.draw(0)
         player.Draw()
         player.Move()
+
         pygame.display.flip()
         CheckInputs()
         clock.tick (60)
