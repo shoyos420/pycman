@@ -32,7 +32,7 @@ class Character (object):
         self.speed = None
         self.velx = None
         self.vely = None
-        self.aux=None
+
         #self.x= None
         #sef.y= None
 
@@ -50,13 +50,10 @@ class Character (object):
             rectTest = self.rect.move ((0, -self.speed))
 
 
-        #for wall in walls:
-        #    if wall.colliderect (rectTest):
-        #        if self.aux == 0:
-        #            print ("cant")
-        #            self.aux+= 1
-        #        return False
-        self.aux=0
+        for wall in walls:
+            if wall.colliderect (rectTest):
+                return False
+
         return True
 
     def Move (self):
@@ -167,15 +164,15 @@ class map():
                 if caracter == '#':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-horiz.gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+
                 if caracter == '$':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-vert.gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-edge" + caracter + ".gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+
                 self.drawx+=16
             self.drawy+=16
 
@@ -248,11 +245,11 @@ def CheckInputs():
 #______________/ game init \____________________________
 
 player = pacman()
-player.aux=0
+
 mapa= map()
 mapa.walls(0)
 
-print mapa.wallList
+##print len(mapa.wallList)
 
 def main():
 
