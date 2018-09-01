@@ -24,19 +24,64 @@ background.fill((250, 250, 250))
 #primera definicion para el manejo de pacman en la ventana
 #primeras etapas para graficar en ventana
 
+class Character (object):
+    def __init__ (self):
+        '''in - (self)'''
+        self.surface = None
+        self.rect = None
+        self.speed = None
+        self.velx = None
+        self.vely = None
+        self.aux=None
+        #self.x= None
+        #sef.y= None
+
+    def canMove (self, walls):
+
+        rectTest = self.rect
+
+        if self.velx > 0:
+            rectTest = self.rect.move ((self.speed, 0))
+        elif self.velx < 0:
+            rectTest = self.rect.move ((-self.speed, 0))
+        elif self.vely > 0:
+            rectTest = self.rect.move ((0, self.speed))
+        elif self.vely < 0:
+            rectTest = self.rect.move ((0, -self.speed))
+
+
+        #for wall in walls:
+        #    if wall.colliderect (rectTest):
+        #        if self.aux == 0:
+        #            print ("cant")
+        #            self.aux+= 1
+        #        return False
+        self.aux=0
+        return True
+
+    def Move (self):
 
 
 
-class pacman ():
+        self.rect.top += self.vely
+        self.rect.left += self.velx
+
+
+
+
+class pacman (Character):
 
     def __init__ (self):
-        self.x = 160
-        self.y = 240
+        #self.x = 160
+        #self.y = 240
 
         self.velx = 0
         self.vely = 0
 
         self.speed=1
+
+
+
 
         self.animFrame=1
 
@@ -59,11 +104,14 @@ class pacman ():
             self.anim_pacmanD[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","pacman-d " + str(i) + ".gif")).convert()
             self.anim_pacmanS[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","pacman.gif")).convert()
 
-
+        self.rect=self.anim_pacmanL[1].get_rect ()
+        self.rect.top=240
+        self.rect.left=160
 
 
     def Draw (self):
 
+        screen.fill((0,0,0))
         if self.velx > 0:
             self.anim_pacmanCurrent = self.anim_pacmanR
         elif self.velx < 0:
@@ -76,7 +124,7 @@ class pacman ():
             self.anim_pacmanCurrent = self.anim_pacmanR
 
 
-        screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.x, self.y ))
+        screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.rect.left, self.rect.top ))
         #screen.blit (self.anim_pacmanD[3], (self.x,self.y))
 
         if not self.velx == 0 or not self.vely == 0:
@@ -87,9 +135,7 @@ class pacman ():
             # termina la animacion e inicia nuevamente
             self.animFrame = 1
 
-    def Move (self):
-        self.x += self.velx
-        self.y += self.vely
+
 
 
 
@@ -99,7 +145,7 @@ class map():
         self.drawx=0
         self.drawy=0
         self.wall= pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall.gif")).convert()
-
+        self.wallList=[]
 
 
 
@@ -111,7 +157,7 @@ class map():
 
     def draw(self, lvl):
 
-        screen.fill((0,0,0))
+        #screen.fill((0,0,0))
 
         file = open(os.path.join(SCRIPT_PATH,"res","levels",str(lvl) + ".txt"), 'r')
 
@@ -121,12 +167,15 @@ class map():
                 if caracter == '#':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-horiz.gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
                 if caracter == '$':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-vert.gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-edge" + caracter + ".gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
                 self.drawx+=16
             self.drawy+=16
 
@@ -134,10 +183,24 @@ class map():
         self.drawx=0
 
 
+    def walls(self,lvl):
 
+        file = open(os.path.join(SCRIPT_PATH,"res","levels",str(lvl) + ".txt"), 'r')
 
+        for line in file:
+            self.drawx=0
+            for caracter in line:
+                if caracter == '#':
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                if caracter == '$':
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                self.drawx+=16
+            self.drawy+=16
 
-
+        self.drawy=0
+        self.drawx=0
 
 
 
@@ -156,6 +219,8 @@ def CheckInputs():
         player.velx = player.speed
         player.vely = 0
 
+
+
     elif pygame.key.get_pressed()[ pygame.K_LEFT ] :
 
         player.velx = -player.speed
@@ -165,10 +230,12 @@ def CheckInputs():
         player.velx = 0
         player.vely = player.speed
 
+
     elif pygame.key.get_pressed()[ pygame.K_UP ] :
 
         player.velx = 0
         player.vely = -player.speed
+
 
 
     if pygame.key.get_pressed()[ pygame.K_ESCAPE ]:
@@ -181,11 +248,15 @@ def CheckInputs():
 #______________/ game init \____________________________
 
 player = pacman()
+player.aux=0
 mapa= map()
+mapa.walls(0)
+
+print mapa.wallList
 
 def main():
 
-
+    conut=0
     screenSize = (320, 480)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
 
@@ -205,14 +276,24 @@ def main():
 
 
 
+        CheckInputs()
+        if  player.canMove(mapa.wallList) :
+            #print player.rect
+            player.Move()
+            player.Draw()
+        #player.Move()
+        #player.Draw()
 
 
         mapa.draw(0)
-        player.Draw()
-        player.Move()
+
+
+
+
 
         pygame.display.flip()
-        CheckInputs()
+
+
         clock.tick (60)
 
 
