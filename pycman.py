@@ -132,7 +132,12 @@ class pacman (Character):
             # termina la animacion e inicia nuevamente
             self.animFrame = 1
 
-
+    def checkPellets(self):
+        for i in mapa.pelletList:
+            if self.rect.colliderect (i):
+                mapa.pelletList.remove(i)
+                print "remove"
+                print i
 
 
 
@@ -141,8 +146,9 @@ class map():
     def __init__ (self):
         self.drawx=0
         self.drawy=0
-        self.wall= pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall.gif")).convert()
+        self.wall= None
         self.wallList=[]
+        self.pelletList=[]
 
 
 
@@ -172,6 +178,12 @@ class map():
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-edge" + caracter + ".gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+                if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l' :
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-end-" + caracter + ".gif")).convert()
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
+                #if caracter == 'p':
+                #    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
+                #    screen.blit (self.wall, (self.drawx, self.drawy ))
 
                 self.drawx+=16
             self.drawy+=16
@@ -179,8 +191,16 @@ class map():
         self.drawy=0
         self.drawx=0
 
+        for p in self.pelletList:
+            self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
+            screen.blit (self.wall, (p.left, p.top ))
 
-    def walls(self,lvl):
+
+
+
+
+
+    def Obstacles(self,lvl):
 
         file = open(os.path.join(SCRIPT_PATH,"res","levels",str(lvl) + ".txt"), 'r')
 
@@ -193,11 +213,16 @@ class map():
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l':
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
+                if caracter == 'p':
+                    self.pelletList.append(pygame.Rect((self.drawx, self.drawy), (8, 8)))
                 self.drawx+=16
             self.drawy+=16
 
         self.drawy=0
         self.drawx=0
+
 
 
 
@@ -247,7 +272,8 @@ def CheckInputs():
 player = pacman()
 
 mapa= map()
-mapa.walls(0)
+mapa.Obstacles(0)
+
 
 ##print len(mapa.wallList)
 
@@ -277,6 +303,7 @@ def main():
         if  player.canMove(mapa.wallList) :
             #print player.rect
             player.Move()
+            player.checkPellets()
             player.Draw()
         #player.Move()
         #player.Draw()
