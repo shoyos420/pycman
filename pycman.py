@@ -4,7 +4,17 @@ import pygame, sys, os, random, time
 from pygame.locals import *
 
 #direccionamos nuestra carpeta para mejorar el orden
+
 SCRIPT_PATH=sys.path[0]
+
+pygame.mixer.init()
+
+channel = pygame.mixer.Channel (2)
+
+pickUp_small = pygame.mixer.Sound (os.path.join(SCRIPT_PATH,"res","sounds","pellet1.wav"))
+moving_sound = pygame.mixer.Sound (os.path.join(SCRIPT_PATH,"res","sounds","pellet2.wav"))
+
+
 
 clock = pygame.time.Clock()
 pygame.init()
@@ -102,7 +112,7 @@ class pacman (Character):
             self.anim_pacmanS[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","pacman.gif")).convert()
 
         self.rect=self.anim_pacmanL[1].get_rect ()
-        self.rect.top=240
+        self.rect.top=340
         self.rect.left=160
 
 
@@ -120,8 +130,10 @@ class pacman (Character):
         else :
             self.anim_pacmanCurrent = self.anim_pacmanR
 
-
+        #if not channel.get_busy ():
+        #    channel.play (moving_sound)
         screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.rect.left, self.rect.top ))
+
         #screen.blit (self.anim_pacmanD[3], (self.x,self.y))
 
         if not self.velx == 0 or not self.vely == 0:
@@ -136,6 +148,8 @@ class pacman (Character):
         for i in mapa.pelletList:
             if self.rect.colliderect (i):
                 mapa.pelletList.remove(i)
+                if not channel.get_busy ():
+                    channel.play (moving_sound)
                 print "remove"
                 print i
 
@@ -181,6 +195,10 @@ class map():
                 if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-end-" + caracter + ".gif")).convert()
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+
+                if caracter == 'y' or caracter == 'v' or caracter =='>' or caracter == '<':
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-t-"+ caracter+".gif")).convert()
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
                 #if caracter == 'p':
                 #    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
                 #    screen.blit (self.wall, (self.drawx, self.drawy ))
@@ -208,11 +226,11 @@ class map():
             self.drawx=0
             for caracter in line:
                 if caracter == '#':
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
                 if caracter == '$':
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (16, 16)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
                 if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l':
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'p':
@@ -280,7 +298,7 @@ mapa.Obstacles(0)
 def main():
 
     conut=0
-    screenSize = (320, 480)
+    screenSize = (304, 480)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
 
 
