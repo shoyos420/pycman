@@ -94,7 +94,7 @@ class pacman (Character):
         self.velx = 0
         self.vely = 0
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
-        self.speed=1
+        self.speed=2
 
 
 
@@ -339,7 +339,7 @@ def conection():
     #  Do 10 requests, waiting each time for a response
 
     #print("Sending request")
-    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely, mapa.pelletList]
+    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely]##, mapa.pelletList]
     socket.send_json(actualStats)
 
         #  Get the reply.
@@ -436,9 +436,9 @@ def main():
 
 
         print(len(playerList))
-        for anothers in playerList:
+        #for anothers in playerList:
 
-            anothers.Draw()
+        #    anothers.Draw()
 
 
 

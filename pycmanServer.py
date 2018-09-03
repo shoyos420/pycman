@@ -27,7 +27,7 @@ while True:
 
     #dictionary={'id': message[0] , 'rect': message[1] , 'velx': message[2] , 'vely': message[3] ,'pellets': message[4]}
 
-    dictionary={'id': message[0] , 'posy': message[1] , 'posx': message[2] ,'velx' : message[3] ,'vely' : message[4] , 'pellets': message[5]}
+    dictionary={'id': message[0] , 'posy': message[1] , 'posx': message[2] ,'velx' : message[3] ,'vely' : message[4]} ## , 'pellets': message[5]}
 
 
 
