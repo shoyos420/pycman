@@ -46,7 +46,7 @@ class Character (object):
         #self.x= None
         #sef.y= None
 
-    def canMove (self, walls):
+    def canMove (self):
 
         rectTest = self.rect
 
@@ -60,7 +60,7 @@ class Character (object):
             rectTest = self.rect.move ((0, -self.speed))
 
 
-        for wall in walls:
+        for wall in mapa.wallList:
             if wall.colliderect (rectTest):
                 return False
 
@@ -118,7 +118,7 @@ class pacman (Character):
 
     def Draw (self):
 
-        screen.fill((0,0,0))
+
         if self.velx > 0:
             self.anim_pacmanCurrent = self.anim_pacmanR
         elif self.velx < 0:
@@ -281,6 +281,35 @@ def CheckInputs():
     if pygame.key.get_pressed()[ pygame.K_ESCAPE ]:
         sys.exit(0)
 
+def CheckInputs2():
+
+
+    if pygame.key.get_pressed()[ pygame.K_d ] :
+
+        player2.velx = player2.speed
+        player2.vely = 0
+
+
+
+    elif pygame.key.get_pressed()[ pygame.K_a] :
+
+        player2.velx = -player2.speed
+        player2.vely = 0
+
+    elif pygame.key.get_pressed()[ pygame.K_s ] :
+        player2.velx = 0
+        player2.vely = player2.speed
+
+
+    elif pygame.key.get_pressed()[ pygame.K_w ] :
+
+        player2.velx = 0
+        player2.vely = -player.speed
+
+
+
+    if pygame.key.get_pressed()[ pygame.K_ESCAPE ]:
+        sys.exit(0)
 
 
 
@@ -288,6 +317,7 @@ def CheckInputs():
 #______________/ game init \____________________________
 
 player = pacman()
+player2 = pacman()
 
 mapa= map()
 mapa.Obstacles(0)
@@ -316,16 +346,22 @@ def main():
                 return
 
 
-
+        screen.fill((0,0,0))
         CheckInputs()
-        if  player.canMove(mapa.wallList) :
+        if  player.canMove() :
             #print player.rect
             player.Move()
             player.checkPellets()
-            player.Draw()
+        player.Draw()
         #player.Move()
         #player.Draw()
 
+        CheckInputs2()
+        if  player2.canMove() :
+            #print player2.rect
+            player2.Move()
+            player2.checkPellets()
+        player2.Draw()
 
         mapa.draw(0)
 
