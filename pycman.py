@@ -93,7 +93,7 @@ class pacman (Character):
 
         self.velx = 0
         self.vely = 0
-
+        self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
         self.speed=1
 
 
@@ -159,8 +159,8 @@ class pacman (Character):
                 mapa.pelletList.remove(i)
                 if not channel.get_busy ():
                     channel.play (moving_sound)
-                print "remove"
-                print i
+                print ("remove")
+                print (i)
 
 
 
@@ -326,7 +326,7 @@ def conection():
 
 
     #  Socket to talk to server
-    print("Connecting to pycman server...")
+    #print("Connecting to pycman server...")
     socket = context.socket(zmq.REQ)
 
 
@@ -338,22 +338,59 @@ def conection():
 
     #  Do 10 requests, waiting each time for a response
 
-    print("Sending request")
-    actualStats = [player.id , player.rect.top, player.rect.left , mapa.pelletList]
+    #print("Sending request")
+    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely, mapa.pelletList]
     socket.send_json(actualStats)
 
         #  Get the reply.
     message = socket.recv_json()
-    print(message[0]['id'])
-        #print("Received reply %s [ %s ]" % (request, message))
+
+    anothersList(message)
+
+    #print(message[0]['id'])
+    #print("Received reply %s [ %s ]" % (request, message))
+
+def anothersList(message):
+    newPlayer= pacman()
+    flag= False
+
+
+
+
+
+    for w in range (0,len(message)):
+
+        for e in playerList:
+            if e.id == message[w]['id']:
+                playerList.remove(e)
+
+
+        newPlayer.id =message[w]['id']
+        newPlayer.rect.top=message[w]['posy']
+        newPlayer.rect.left=message[w]['posx']
+        newPlayer.velx=message[w]['velx']
+        newPlayer.vely=message[w]['vely']
+        playerList.append(newPlayer)
+
+
+
+
+def interception(a, b):
+    lista_final = []
+    for i in a:
+        if (i not in lista_final) and (i in b):
+            lista_final.append(i)
+    return lista_final
 
 
 #______________/ game init \____________________________
 
 player = pacman()
+
 player.set_id()
 print(player.id)
-player2 = pacman()
+
+playerList = []
 
 mapa= map()
 mapa.Obstacles(0)
@@ -369,12 +406,16 @@ def main():
 
 
 
-    conection()
+    #conection()
+
 
 
 
 
     while 1:
+        screen.fill((0,0,0))
+        playerList2=[]
+        conection()
 
 
         for event in pygame.event.get():
@@ -382,22 +423,31 @@ def main():
                 return
 
 
-        screen.fill((0,0,0))
+
         CheckInputs()
         if  player.canMove() :
-            #print player.rect
+
             player.Move()
             player.checkPellets()
+
         player.Draw()
+
+
+
+
+        print(len(playerList))
+        for anothers in playerList:
+
+            anothers.Draw()
+
+
+
+
+
         #player.Move()
         #player.Draw()
 
-        CheckInputs2()
-        if  player2.canMove() :
-            #print player2.rect
-            player2.Move()
-            player2.checkPellets()
-        player2.Draw()
+
 
         mapa.draw(0)
 
