@@ -3,6 +3,12 @@
 import pygame, sys, os, random, time
 from pygame.locals import *
 
+import zmq
+
+import binascii
+import os
+from random import randint
+
 #direccionamos nuestra carpeta para mejorar el orden
 
 SCRIPT_PATH=sys.path[0]
@@ -37,11 +43,12 @@ background.fill((250, 250, 250))
 class Character (object):
     def __init__ (self):
         '''in - (self)'''
-        self.surface = None
+
         self.rect = None
         self.speed = None
         self.velx = None
         self.vely = None
+        self.id = None
 
         #self.x= None
         #sef.y= None
@@ -73,7 +80,9 @@ class Character (object):
         self.rect.top += self.vely
         self.rect.left += self.velx
 
-
+    def set_id(self):
+        """Set simple random printable identity on socket"""
+        self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
 
 
 class pacman (Character):
@@ -230,7 +239,7 @@ class map():
                 if caracter == '$':
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l':
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'p':
@@ -312,11 +321,38 @@ def CheckInputs2():
         sys.exit(0)
 
 
+def conection():
+    context = zmq.Context()
+
+
+    #  Socket to talk to server
+    print("Connecting to pycman server...")
+    socket = context.socket(zmq.REQ)
+
+
+
+    socket.connect("tcp://localhost:5556")
+
+
+
+
+    #  Do 10 requests, waiting each time for a response
+
+    print("Sending request")
+    actualStats = [player.id , player.rect.top, player.rect.left , mapa.pelletList]
+    socket.send_json(actualStats)
+
+        #  Get the reply.
+    message = socket.recv_json()
+    print(message[0]['id'])
+        #print("Received reply %s [ %s ]" % (request, message))
 
 
 #______________/ game init \____________________________
 
 player = pacman()
+player.set_id()
+print(player.id)
 player2 = pacman()
 
 mapa= map()
@@ -327,13 +363,13 @@ mapa.Obstacles(0)
 
 def main():
 
-    conut=0
+
     screenSize = (304, 480)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
 
 
 
-
+    conection()
 
 
 

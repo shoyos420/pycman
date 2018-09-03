@@ -13,7 +13,7 @@ import zmq
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
-socket.bind("tcp://*:5555")
+socket.bind("tcp://*:5556")
 proxyPlayers=[]
 
 while True:
@@ -23,7 +23,7 @@ while True:
 
     #dictionary={'id': message[0] , 'rect': message[1] , 'velx': message[2] , 'vely': message[3] ,'pellets': message[4]}
 
-    dictionary={'id': message[0] , 'rect': message[1] , 'pellets': message[2]}
+    dictionary={'id': message[0] , 'posx': message[1] , 'posy': message[2] ,  'pellets': message[3]}
 
     if  not proxyPlayers.count(dictionary) :
         proxyPlayers.append(dictionary)
