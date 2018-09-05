@@ -19,7 +19,7 @@ channel = pygame.mixer.Channel (2)
 
 pickUp_small = pygame.mixer.Sound (os.path.join(SCRIPT_PATH,"res","sounds","pellet1.wav"))
 moving_sound = pygame.mixer.Sound (os.path.join(SCRIPT_PATH,"res","sounds","pellet2.wav"))
-
+pickUp_big = pygame.mixer.Sound (os.path.join(SCRIPT_PATH,"res","sounds","powerpellet.wav"))
 
 
 clock = pygame.time.Clock()
@@ -84,13 +84,33 @@ class Character (object):
         """Set simple random printable identity on socket"""
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
 
+    def checkColl (self,jugador):
+
+        rectTest = self.rect
+
+        if self.velx > 0:
+            rectTest = self.rect.move ((self.speed, 0))
+        elif self.velx < 0:
+            rectTest = self.rect.move ((-self.speed, 0))
+        elif self.vely > 0:
+            rectTest = self.rect.move ((0, self.speed))
+        elif self.vely < 0:
+            rectTest = self.rect.move ((0, -self.speed))
+
+
+
+        if jugador.rect.colliderect (rectTest):
+            return True
+
+        return False
+
 
 class pacman (Character):
 
     def __init__ (self):
         #self.x = 160
         #self.y = 240
-
+        self.identity=None
         self.velx = 0
         self.vely = 0
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
@@ -100,6 +120,7 @@ class pacman (Character):
 
 
         self.animFrame=1
+        self.animFrameG=1
 
 
 
@@ -108,7 +129,11 @@ class pacman (Character):
         self.anim_pacmanU = {}
         self.anim_pacmanD = {}
         self.anim_pacmanS = {}
-        self.anim_pacmanCurrent = {}
+
+
+        self.anim_ghost = {}
+
+        self.anim_Current = {}
 
 
 
@@ -120,6 +145,10 @@ class pacman (Character):
             self.anim_pacmanD[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","pacman-d " + str(i) + ".gif")).convert()
             self.anim_pacmanS[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","pacman.gif")).convert()
 
+        for i in range (1, 7, 1):
+            self.anim_ghost[i] = pygame.image.load(os.path.join(SCRIPT_PATH,"res","sprite","ghost " + str(i) + ".gif")).convert()
+
+
         self.rect=self.anim_pacmanL[1].get_rect ()
         self.rect.top=340
         self.rect.left=160
@@ -127,31 +156,50 @@ class pacman (Character):
 
     def Draw (self):
 
+        if self.identity == 0:
+            if self.velx > 0:
+                self.anim_Current = self.anim_pacmanR
+            elif self.velx < 0:
+                self.anim_Current = self.anim_pacmanL
+            elif self.vely > 0:
+                self.anim_Current = self.anim_pacmanD
+            elif self.vely < 0:
+                self.anim_Current = self.anim_pacmanU
+            else :
+                self.anim_Current = self.anim_pacmanR
 
-        if self.velx > 0:
-            self.anim_pacmanCurrent = self.anim_pacmanR
-        elif self.velx < 0:
-            self.anim_pacmanCurrent = self.anim_pacmanL
-        elif self.vely > 0:
-            self.anim_pacmanCurrent = self.anim_pacmanD
-        elif self.vely < 0:
-            self.anim_pacmanCurrent = self.anim_pacmanU
-        else :
-            self.anim_pacmanCurrent = self.anim_pacmanR
+            screen.blit (self.anim_Current[ self.animFrame ], (self.rect.left, self.rect.top ))
+
+            if not self.velx == 0 or not self.vely == 0:
+                # solo anima la boca cuando pacman se mueva
+                self.animFrame += 1
+
+            if self.animFrame == 9:
+                # termina la animacion e inicia nuevamente
+                self.animFrame = 1
+
+
+        elif self.identity == 1 :
+
+            self.anim_Current = self.anim_ghost
+            print(self.anim_ghost)
+
+            screen.blit (self.anim_Current[ self.animFrameG ], (self.rect.left, self.rect.top ))
+
+            if not self.velx == 0 or not self.vely == 0:
+                # solo anima la boca cuando pacman se mueva
+                self.animFrameG += 1
+
+            if self.animFrameG == 6:
+                # termina la animacion e inicia nuevamente
+                self.animFrameG = 1
 
         #if not channel.get_busy ():
         #    channel.play (moving_sound)
-        screen.blit (self.anim_pacmanCurrent[ self.animFrame ], (self.rect.left, self.rect.top ))
+
 
         #screen.blit (self.anim_pacmanD[3], (self.x,self.y))
 
-        if not self.velx == 0 or not self.vely == 0:
-            # solo anima la boca cuando pacman se mueva
-            self.animFrame += 1
-
-        if self.animFrame == 9:
-            # termina la animacion e inicia nuevamente
-            self.animFrame = 1
 
     def checkPellets(self):
         for i in mapa.pelletList:
@@ -159,8 +207,13 @@ class pacman (Character):
                 mapa.pelletList.remove(i)
                 if not channel.get_busy ():
                     channel.play (moving_sound)
-                print ("remove")
-                print (i)
+        for i in mapa.pelletList2:
+            if self.rect.colliderect (i):
+                mapa.pelletList2.remove(i)
+                if not channel.get_busy ():
+                    channel.play (pickUp_big)
+                #print ("remove")
+                #print (i)
 
 
 
@@ -172,6 +225,7 @@ class map():
         self.wall= None
         self.wallList=[]
         self.pelletList=[]
+        self.pelletList2=[]
 
 
 
@@ -222,6 +276,9 @@ class map():
             self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
             screen.blit (self.wall, (p.left, p.top ))
 
+        for p in self.pelletList2:
+            self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet-power.gif")).convert()
+            screen.blit (self.wall, (p.left, p.top ))
 
 
 
@@ -244,6 +301,8 @@ class map():
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'p':
                     self.pelletList.append(pygame.Rect((self.drawx, self.drawy), (8, 8)))
+                if caracter == 'P':
+                    self.pelletList2.append(pygame.Rect((self.drawx, self.drawy), (8, 8)))
                 self.drawx+=16
             self.drawy+=16
 
@@ -339,7 +398,7 @@ def conection():
     #  Do 10 requests, waiting each time for a response
 
     #print("Sending request")
-    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely]##, mapa.pelletList]
+    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely]#, mapa.pelletList]
     socket.send_json(actualStats)
 
         #  Get the reply.
@@ -385,12 +444,22 @@ def interception(a, b):
 
 #______________/ game init \____________________________
 
+
+
+
 player = pacman()
+#player.identity=randint(0, 1)
+player.identity=0
+
+player2 = pacman()
+player2.identity=1
+player2.rect.top=100
 
 player.set_id()
-print(player.id)
+#print(player.id)
 
 playerList = []
+playerList.append(player2)
 
 mapa= map()
 mapa.Obstacles(0)
@@ -415,7 +484,7 @@ def main():
     while 1:
         screen.fill((0,0,0))
         playerList2=[]
-        conection()
+        #conection()
 
 
         for event in pygame.event.get():
@@ -428,14 +497,26 @@ def main():
         if  player.canMove() :
 
             player.Move()
-            player.checkPellets()
+            if player.identity == 0:
+                player.checkPellets()
+
+        CheckInputs2()
+        if  player2.canMove() :
+
+            player2.Move()
+            if player2.identity == 0:
+                player2.checkPellets()
+
+        if player2.checkColl(player):
+            player.identity=1
 
         player.Draw()
+        player2.Draw()
 
 
 
 
-        print(len(playerList))
+        #print(len(playerList))
         #for anothers in playerList:
 
         #    anothers.Draw()
@@ -456,6 +537,7 @@ def main():
 
 
         pygame.display.flip()
+
 
 
         clock.tick (60)
