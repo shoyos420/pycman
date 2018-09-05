@@ -3,6 +3,8 @@
 import pygame, sys, os, random, time
 from pygame.locals import *
 
+import json
+
 import zmq
 from collections import namedtuple
 
@@ -34,15 +36,9 @@ background = pygame.Surface(screen.get_size())
 background = background.convert()
 #background.fill((250, 250, 250))
 
-mode= None
+mode= 0
 
-ghostcolor = {}
-ghostcolor[0] = (255, 0, 0, 255)
-ghostcolor[1] = (255, 128, 255, 255)
-ghostcolor[2] = (128, 255, 255, 255)
-ghostcolor[3] = (255, 128, 0, 255)
-ghostcolor[4] = (50, 50, 255, 255) # blue, vulnerable ghost
-ghostcolor[5] = (255, 255, 255, 255)
+
 
 ##______________/ Clase Pacman \____________________##
 
@@ -444,27 +440,21 @@ def CheckInputs2():
         sys.exit(0)
 
 
-def conection():
-    if len(sys.argv) != 2:
-        print("Must be called with an identity")
-        exit()
-    context = zmq.Context()
-    socket = context.socket(zmq.DEALER)
-    player.id = sys.argv[1].encode('ascii')
-    socket.identity = player.id
-    socket.connect("tcp://localhost:4444")
-    print("Started client with id {}".format(player.id))
-    poller = zmq.Poller()
-    poller.register(sys.stdin, zmq.POLLIN)
-    poller.register(socket, zmq.POLLIN)
 
 
-    #while True :
-    print(player.id)
-    actualStats = [player.rect.top, player.rect.left , player.velx , player.vely]#, mapa.pelletList]
-    socket.send_multipart([bytes('hola', 'ascii')])
-    message = socket.recv_multipart()
-    print(message)
+
+def enviar():
+    actualStats = str(player.rect.top) + " " + str(player.rect.left) + " " + str(player.velx)+ " " +str(player.vely)#, mapa.pelletList]
+    socket.send_multipart([bytes(actualStats, 'ascii')])
+
+def recibir():
+    #lista= playerList
+
+    id, message = socket.recv_multipart()
+    print ("hola")
+    if id != player.id :
+        print(id)
+
 
 def anothersList(message):
     newPlayer= pacman()
@@ -524,7 +514,26 @@ playerList.append(player2)
 mapa= map()
 mapa.Obstacles(0)
 
-conection()
+if len(sys.argv) != 2:
+    print("Must be called with an identity")
+    exit()
+context = zmq.Context()
+socket = context.socket(zmq.DEALER)
+player.id = sys.argv[1].encode('ascii')
+socket.identity = player.id
+socket.connect("tcp://localhost:4444")
+print("Started client with id {}".format(player.id))
+poller = zmq.Poller()
+poller.register(sys.stdin, zmq.POLLIN)
+poller.register(socket, zmq.POLLIN)
+flagEnvio=True
+
+
+
+
+#conection()
+
+##playerList.append(recibir())
 
 
 
@@ -547,12 +556,14 @@ def main():
 
 
     while 1:
+        enviar()
+        recibir()
         #screen.fill((0,0,0))
         playerList2=[]
         #conection()
         screen.blit(background,(0,0))
 
-        print(mode)
+
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
