@@ -5,7 +5,7 @@ $pppppppp$pppppppp$
 $pl####rp$pl####rp$
 $pppppppp$pppppppp$
 $p12pl#rpbpl#rp12p$
-$p$$ppppppppppp$$p$
+$p$$pppppPppppp$$p$
 $p34pl#rptpl#rp34p$
 $pppppppp$pppppppp$
 3##2ptppp$ppptp1##4
@@ -17,14 +17,14 @@ $pppppppp$pppppppp$
    $p$ppppppp$p$
    $p$pl#y#rp$p$
 1##4pbppp$pppbp3##2
-$pppppptp$ptpppppp$
+$Pppppptp$ptpppppP$
 $p1rpl#4pbp3#rpl2p$
 $p$ppppppppppppp$p$
 $p$pl###rpl###rp$p$
-$p$pppppptpppppp$p$
+$p$ptpppppptPppppp$p$
 $p$p1##2p$p1##2p$p$
 $p$p3##4p$p3##4p$p$
 $p$pppppp$pppppp$p$
 $p3####rp$pl####4p$
-$pppppppp$pppppppp$
+$Pppppppp$pppppppP$
 3########v########4

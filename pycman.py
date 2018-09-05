@@ -4,6 +4,7 @@ import pygame, sys, os, random, time
 from pygame.locals import *
 
 import zmq
+from collections import namedtuple
 
 import binascii
 import os
@@ -33,6 +34,7 @@ background = pygame.Surface(screen.get_size())
 background = background.convert()
 #background.fill((250, 250, 250))
 
+mode= None
 
 ghostcolor = {}
 ghostcolor[0] = (255, 0, 0, 255)
@@ -57,6 +59,7 @@ class Character (object):
         self.velx = None
         self.vely = None
         self.id = None
+
 
         #self.x= None
         #sef.y= None
@@ -123,6 +126,7 @@ class pacman (Character):
         self.vely = 0
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
         self.speed=1
+
 
 
 
@@ -219,6 +223,9 @@ class pacman (Character):
                 mapa.pelletList2.remove(i)
                 if not channel.get_busy ():
                     channel.play (pickUp_big)
+                global mode
+                mode =1
+
                 #print ("remove")
                 #print (i)
 
@@ -438,33 +445,26 @@ def CheckInputs2():
 
 
 def conection():
+    if len(sys.argv) != 2:
+        print("Must be called with an identity")
+        exit()
     context = zmq.Context()
+    socket = context.socket(zmq.DEALER)
+    player.id = sys.argv[1].encode('ascii')
+    socket.identity = player.id
+    socket.connect("tcp://localhost:4444")
+    print("Started client with id {}".format(player.id))
+    poller = zmq.Poller()
+    poller.register(sys.stdin, zmq.POLLIN)
+    poller.register(socket, zmq.POLLIN)
 
 
-    #  Socket to talk to server
-    #print("Connecting to pycman server...")
-    socket = context.socket(zmq.REQ)
-
-
-
-    socket.connect("tcp://localhost:5556")
-
-
-
-
-    #  Do 10 requests, waiting each time for a response
-
-    #print("Sending request")
-    actualStats = [player.id , player.rect.top, player.rect.left , player.velx , player.vely]#, mapa.pelletList]
-    socket.send_json(actualStats)
-
-        #  Get the reply.
-    message = socket.recv_json()
-
-    anothersList(message)
-
-    #print(message[0]['id'])
-    #print("Received reply %s [ %s ]" % (request, message))
+    #while True :
+    print(player.id)
+    actualStats = [player.rect.top, player.rect.left , player.velx , player.vely]#, mapa.pelletList]
+    socket.send_multipart([bytes('hola', 'ascii')])
+    message = socket.recv_multipart()
+    print(message)
 
 def anothersList(message):
     newPlayer= pacman()
@@ -524,6 +524,10 @@ playerList.append(player2)
 mapa= map()
 mapa.Obstacles(0)
 
+conection()
+
+
+
 
 
 ##print len(mapa.wallList)
@@ -548,7 +552,7 @@ def main():
         #conection()
         screen.blit(background,(0,0))
 
-
+        print(mode)
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
@@ -570,7 +574,12 @@ def main():
                 player2.checkPellets()
 
         if player2.checkColl(player):
-            player.identity=1
+
+            if mode==0:
+                player.identity=1
+            elif mode==1:
+                player2.identity=0
+                print("cambio positivo")
         mapa.drawPellets(0)
         player.Draw()
         player2.Draw()
