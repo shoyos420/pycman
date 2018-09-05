@@ -31,8 +31,16 @@ pygame.display.set_caption("Pycman")
 screen = pygame.display.get_surface()
 background = pygame.Surface(screen.get_size())
 background = background.convert()
-background.fill((250, 250, 250))
+#background.fill((250, 250, 250))
 
+
+ghostcolor = {}
+ghostcolor[0] = (255, 0, 0, 255)
+ghostcolor[1] = (255, 128, 255, 255)
+ghostcolor[2] = (128, 255, 255, 255)
+ghostcolor[3] = (255, 128, 0, 255)
+ghostcolor[4] = (50, 50, 255, 255) # blue, vulnerable ghost
+ghostcolor[5] = (255, 255, 255, 255)
 
 ##______________/ Clase Pacman \____________________##
 
@@ -114,7 +122,7 @@ class pacman (Character):
         self.velx = 0
         self.vely = 0
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
-        self.speed=2
+        self.speed=1
 
 
 
@@ -150,8 +158,7 @@ class pacman (Character):
 
 
         self.rect=self.anim_pacmanL[1].get_rect ()
-        self.rect.top=340
-        self.rect.left=160
+
 
 
     def Draw (self):
@@ -182,7 +189,7 @@ class pacman (Character):
         elif self.identity == 1 :
 
             self.anim_Current = self.anim_ghost
-            print(self.anim_ghost)
+
 
             screen.blit (self.anim_Current[ self.animFrameG ], (self.rect.left, self.rect.top ))
 
@@ -223,13 +230,15 @@ class map():
         self.drawx=0
         self.drawy=0
         self.wall= None
+        self.pellet= pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
+        self.powerPellet=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet-power.gif")).convert()
         self.wallList=[]
         self.pelletList=[]
         self.pelletList2=[]
 
 
 
-
+        self.colorPellets((250,250,0,255))
 
 
 
@@ -246,22 +255,33 @@ class map():
             for caracter in line:
                 if caracter == '#':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-horiz.gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
                     screen.blit (self.wall, (self.drawx, self.drawy ))
 
-                if caracter == '$':
+                elif caracter == '$':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-straight-vert.gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
                     screen.blit (self.wall, (self.drawx, self.drawy ))
 
-                if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
+                elif caracter == 'd':
+                    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","ghost-door.gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
+                    screen.blit (self.wall, (self.drawx, self.drawy ))
+
+                elif caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-edge" + caracter + ".gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
                     screen.blit (self.wall, (self.drawx, self.drawy ))
-                if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l' :
+                elif caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l' :
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-end-" + caracter + ".gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
                     screen.blit (self.wall, (self.drawx, self.drawy ))
 
-                if caracter == 'y' or caracter == 'v' or caracter =='>' or caracter == '<':
+                elif caracter == 'y' or caracter == 'v' or caracter =='>' or caracter == '<':
                     self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","wall-t-"+ caracter+".gif")).convert()
+                    self.colorWall((6, 6, 118, 255),(100, 100, 250, 255),(5, 5, 50, 255))
                     screen.blit (self.wall, (self.drawx, self.drawy ))
+
                 #if caracter == 'p':
                 #    self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
                 #    screen.blit (self.wall, (self.drawx, self.drawy ))
@@ -272,13 +292,44 @@ class map():
         self.drawy=0
         self.drawx=0
 
+    def drawPellets(self, lvl):
+
+        #screen.fill((0,0,0))
+
+        file = open(os.path.join(SCRIPT_PATH,"res","levels",str(lvl) + ".txt"), 'r')
+
         for p in self.pelletList:
-            self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet.gif")).convert()
-            screen.blit (self.wall, (p.left, p.top ))
+            screen.blit (self.pellet, (p.left, p.top ))
 
         for p in self.pelletList2:
-            self.wall=pygame.image.load(os.path.join(SCRIPT_PATH,"res","tiles","pellet-power.gif")).convert()
-            screen.blit (self.wall, (p.left, p.top ))
+
+            screen.blit (self.powerPellet, (p.left, p.top ))
+
+
+    def colorWall(self,color,light,shadow):
+        for y in range(0, 16, 1):
+            for x in range(0, 16, 1):
+
+                if self.wall.get_at((x, y))==(255, 206, 255, 255):
+                    self.wall.set_at( (x, y), light )
+
+                if self.wall.get_at((x, y))==(132, 0, 132, 255):
+                    self.wall.set_at( (x, y), color )
+
+                if self.wall.get_at((x, y))==(255, 0, 255, 255):
+                    self.wall.set_at( (x, y), color )
+
+    def colorPellets(self,color):
+        for y in range(0, 16, 1):
+            for x in range(0, 16, 1):
+
+                if self.pellet.get_at((x, y))== (128, 0, 128, 255):
+                    self.pellet.set_at( (x, y), color )
+                if self.powerPellet.get_at((x, y))== (128, 0, 128, 255):
+                    self.powerPellet.set_at( (x, y), color )
+
+
+
 
 
 
@@ -292,12 +343,18 @@ class map():
             self.drawx=0
             for caracter in line:
                 if caracter == '#':
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == '$':
-                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (14, 14)))
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l':
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
+                if caracter == '1' or caracter == '2' or caracter =='3' or caracter == '4' :
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
+                if caracter == 'r' or caracter == 'b' or caracter =='t' or caracter == 'l' :
+                    self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
+                if caracter == 'y' or caracter == 'v' or caracter =='>' or caracter == '<':
                     self.wallList.append(pygame.Rect((self.drawx, self.drawy), (12, 12)))
                 if caracter == 'p':
                     self.pelletList.append(pygame.Rect((self.drawx, self.drawy), (8, 8)))
@@ -450,10 +507,13 @@ def interception(a, b):
 player = pacman()
 #player.identity=randint(0, 1)
 player.identity=0
+player.rect.top=336
+player.rect.left=136
 
 player2 = pacman()
 player2.identity=1
-player2.rect.top=100
+player2.rect.top=224
+player2.rect.left=136
 
 player.set_id()
 #print(player.id)
@@ -463,6 +523,7 @@ playerList.append(player2)
 
 mapa= map()
 mapa.Obstacles(0)
+
 
 
 ##print len(mapa.wallList)
@@ -477,14 +538,15 @@ def main():
 
     #conection()
 
-
-
+    mapa.draw(0)
+    background = screen.copy()
 
 
     while 1:
-        screen.fill((0,0,0))
+        #screen.fill((0,0,0))
         playerList2=[]
         #conection()
+        screen.blit(background,(0,0))
 
 
         for event in pygame.event.get():
@@ -509,9 +571,10 @@ def main():
 
         if player2.checkColl(player):
             player.identity=1
-
+        mapa.drawPellets(0)
         player.Draw()
         player2.Draw()
+
 
 
 
@@ -530,7 +593,9 @@ def main():
 
 
 
-        mapa.draw(0)
+
+
+
 
 
 
