@@ -120,7 +120,7 @@ class pacman (Character):
         self.identity=None
         self.velx = 0
         self.vely = 0
-        self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
+
         self.speed=1
 
 
@@ -444,16 +444,37 @@ def CheckInputs2():
 
 
 def enviar():
-    actualStats = str(player.rect.top) + " " + str(player.rect.left) + " " + str(player.velx)+ " " +str(player.vely)#, mapa.pelletList]
-    socket.send_multipart([bytes(actualStats, 'ascii')])
+    #actualStats = str(player.rect.top) + " " + str(player.rect.left) + " " + str(player.velx)+ " " +str(player.vely)#, mapa.pelletList]
+
+    
+    socket.send_multipart([bin(player.rect.left) , bin(player.rect.top) ,bin(player.velx) ,bin(player.velx),bin(player.identity)])
 
 def recibir():
     #lista= playerList
 
-    id, message = socket.recv_multipart()
-    print ("hola")
-    if id != player.id :
-        print(id)
+
+    id, x , y, velx ,vely, identity = socket.recv_multipart()
+    if not id in idList:
+        idList.append(id)
+
+    proxyPlayer= pacman()
+    proxyPlayer.id=id.decode('ascii')
+    #proxyPlayer.identity=randint(0, 1)
+    proxyPlayer.rect.left=int(x.decode(),2)
+    proxyPlayer.rect.top=int(y.decode(),2)
+    proxyPlayer.velx=int(velx.decode(),2)
+    proxyPlayer.vely=int(vely.decode(),2)
+    proxyPlayer.identity=int(identity.decode(),2)
+
+
+    for p in playerList:
+        if p.id == proxyPlayer.id:
+            playerList.remove(p)
+
+    playerList.append(proxyPlayer)
+
+
+
 
 
 def anothersList(message):
@@ -488,6 +509,20 @@ def interception(a, b):
             lista_final.append(i)
     return lista_final
 
+def inicializador():
+    player.identity=randint(0, 1)
+
+    if player.identity == 0:
+
+        player.rect.top=336
+        player.rect.left=136
+    else :
+
+        player.rect.top=224
+        player.rect.left=136
+
+
+
 
 #______________/ game init \____________________________
 
@@ -495,21 +530,18 @@ def interception(a, b):
 
 
 player = pacman()
-#player.identity=randint(0, 1)
-player.identity=0
-player.rect.top=336
-player.rect.left=136
+inicializador()
 
-player2 = pacman()
-player2.identity=1
-player2.rect.top=224
-player2.rect.left=136
 
-player.set_id()
+
+
+
 #print(player.id)
 
 playerList = []
-playerList.append(player2)
+
+
+idList=[]
 
 mapa= map()
 mapa.Obstacles(0)
@@ -558,9 +590,8 @@ def main():
     while 1:
         enviar()
         recibir()
-        #screen.fill((0,0,0))
-        playerList2=[]
-        #conection()
+
+
         screen.blit(background,(0,0))
 
 
@@ -577,23 +608,34 @@ def main():
             if player.identity == 0:
                 player.checkPellets()
 
-        CheckInputs2()
-        if  player2.canMove() :
+        for p in playerList :
+            if  p.canMove() :
 
-            player2.Move()
-            if player2.identity == 0:
-                player2.checkPellets()
+                p.Move()
+                if p.identity == 0:
+                    p.checkPellets()
 
-        if player2.checkColl(player):
+            if p.checkColl(player):
+                if p.identity == 1:
+                    player.identity = 1
 
-            if mode==0:
-                player.identity=1
-            elif mode==1:
-                player2.identity=0
-                print("cambio positivo")
+
+
+        #if player2.checkColl(player):
+
+        #    if mode==0:
+        #        player.identity=1
+        #    elif mode==1:
+        #        player2.identity=0
+        #        print("cambio positivo")
+
+
+
         mapa.drawPellets(0)
         player.Draw()
-        player2.Draw()
+        for p in playerList :
+            p.Draw()
+        #player2.Draw()
 
 
 

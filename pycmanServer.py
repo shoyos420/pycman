@@ -13,61 +13,30 @@ def main():
     socket = context.socket(zmq.ROUTER)
     socket.bind("tcp://*:4444")
     proxyPlayers = []
-    proxyList= []
+    identList= []
     print("Started server")
 
-    def dict_to_binary(the_dict):
-        str = json.dumps(the_dict)
-        binary = ' '.join(format(ord(letter), 'b') for letter in str)
-        return binary
 
-    def proxyPlayerStr(lista):
-        lista2=[]
-        for p in lista:
-            lista2.append(str(p[0])+ " " + p[1])
-
-        return lista2
 
 
 
     while True:
 
-        flag=False
-        ident, msg = socket.recv_multipart()
+        #flag=False
+
+        ident, x, y , velx , vely , identity= socket.recv_multipart()
+        #proxy=int(msg.decode(),2)
+        #print(proxy)
+
+        if not ident in identList:
+            identList.append(ident)
+
+        for p in identList:
 
 
-        proxy=(msg.decode())
-        print(proxy)
+            if p != ident:
 
-        #msg =dict_to_binary(dictionary)
-        #print (dictionary)
-        for p in proxyPlayers:
-
-            if p == ident:
-                proxyList.find(str(ident))
-                    a, b = n.split(' ', 1)
-                    if a == str(ident):
-                        proxyList.remove(n)
-                proxyPlayers.remove(p)
-                flag= True
-        proxyPlayers.append(ident)
-
-
-
-        #proxyList=proxyPlayerStr(proxyPlayers)
-        #print(proxyList)
-
-
-
-        for p in proxyPlayers:
-
-            #dest, msg = p.split(' ', 1)
-            #if ident ==dest.decode():
-            #    print("true")
-            #print(msg)
-            socket.send_multipart([p, ident,msg])#bytes(dest, 'ascii')
-            #print("envio")
-
+                socket.send_multipart([p, ident,x , y , velx, vely, identity ])
 
             #socket.send_multipart([dest , ident, msg])
 
