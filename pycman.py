@@ -1,21 +1,28 @@
 
-#libreria pygame
+#_________/  Librerias utilizadas \__________________________#
+
+## Pygame Utility ##
 import pygame, sys, os, random, time
 from pygame.locals import *
 
+# Json utility (not used)
 import json
 
+# Socket management ZeroMQ
 import zmq
 from collections import namedtuple
 
+#Matemathic utility
 import binascii
 import os
 from random import randint
 
-#direccionamos nuestra carpeta para mejorar el orden
+#Direccionamos nuestra carpeta para mejorar el orden#
 
 SCRIPT_PATH=sys.path[0]
 
+
+#Init del Sonido y pygame
 pygame.mixer.init()
 
 channel = pygame.mixer.Channel (2)
@@ -34,9 +41,9 @@ pygame.display.set_caption("Pycman")
 screen = pygame.display.get_surface()
 background = pygame.Surface(screen.get_size())
 background = background.convert()
-#background.fill((250, 250, 250))
 
-mode= 0
+
+
 
 
 
@@ -44,7 +51,9 @@ mode= 0
 
 
 #primera definicion para el manejo de pacman en la ventana
-#primeras etapas para graficar en ventana
+
+
+## superclase character con los elementos mas basicos de un caracter
 
 class Character (object):
     def __init__ (self):
@@ -57,9 +66,8 @@ class Character (object):
         self.id = None
 
 
-        #self.x= None
-        #sef.y= None
 
+    ## Determina si el jugador se puede mover
     def canMove (self):
 
         rectTest = self.rect
@@ -80,6 +88,7 @@ class Character (object):
 
         return True
 
+    ## Genera el movimiento en pro a su velocidad
     def Move (self):
 
 
@@ -87,10 +96,15 @@ class Character (object):
         self.rect.top += self.vely
         self.rect.left += self.velx
 
+
+    ## Funcion para definir un id obtenida desde la doc de ZeroMQ python
     def set_id(self):
         """Set simple random printable identity on socket"""
         self.id = u"%04x-%04x" % (randint(0, 0x10000), randint(0, 0x10000))
 
+
+
+    #Determina una colision entre 2 jugadores
     def checkColl (self,jugador):
 
         rectTest = self.rect
@@ -111,6 +125,7 @@ class Character (object):
 
         return False
 
+## clase pacman que hereda de la superclase character
 
 class pacman (Character):
 
@@ -226,7 +241,10 @@ class pacman (Character):
                 #print (i)
 
 
+##______________/ Clase Mapa \____________________##
 
+#se encarga de definir las propiedades de un mapa y
+#la definicion de unos vectores para su utilizacion en el juego
 
 class map():
     def __init__ (self):
@@ -377,7 +395,7 @@ class map():
 
 
 
-#______________/ entradas \____________________________
+#______________/ entradas y controles\____________________________
 
 def CheckInputs():
 
@@ -409,6 +427,8 @@ def CheckInputs():
     if pygame.key.get_pressed()[ pygame.K_ESCAPE ]:
         sys.exit(0)
 
+
+#controles secundarios (WASD) no utilizados
 def CheckInputs2():
 
 
@@ -442,13 +462,12 @@ def CheckInputs2():
 
 
 
-
+## envio asincrono de datos , manda las propiedades del jugador de esta ventana
 def enviar():
-    #actualStats = str(player.rect.top) + " " + str(player.rect.left) + " " + str(player.velx)+ " " +str(player.vely)#, mapa.pelletList]
 
-    
     socket.send_multipart([bin(player.rect.left) , bin(player.rect.top) ,bin(player.velx) ,bin(player.velx),bin(player.identity)])
 
+## obtencion asincrona de datos , recibe las propiedades de los demas jugadores de esta ventana
 def recibir():
     #lista= playerList
 
@@ -474,41 +493,8 @@ def recibir():
     playerList.append(proxyPlayer)
 
 
-
-
-
-def anothersList(message):
-    newPlayer= pacman()
-    flag= False
-
-
-
-
-
-    for w in range (0,len(message)):
-
-        for e in playerList:
-            if e.id == message[w]['id']:
-                playerList.remove(e)
-
-
-        newPlayer.id =message[w]['id']
-        newPlayer.rect.top=message[w]['posy']
-        newPlayer.rect.left=message[w]['posx']
-        newPlayer.velx=message[w]['velx']
-        newPlayer.vely=message[w]['vely']
-        playerList.append(newPlayer)
-
-
-
-
-def interception(a, b):
-    lista_final = []
-    for i in a:
-        if (i not in lista_final) and (i in b):
-            lista_final.append(i)
-    return lista_final
-
+##  define que identidad tendras antes de iniciar (pacman o fantasma)
+## y tu posicion en el mapa
 def inicializador():
     player.identity=randint(0, 1)
 
@@ -533,19 +519,15 @@ player = pacman()
 inicializador()
 
 
-
-
-
-#print(player.id)
-
 playerList = []
-
 
 idList=[]
 
 mapa= map()
 mapa.Obstacles(0)
 
+
+ ##_______________________________________/ SOCKET CONETTION INIT \____________________________________
 if len(sys.argv) != 2:
     print("Must be called with an identity")
     exit()
@@ -558,20 +540,8 @@ print("Started client with id {}".format(player.id))
 poller = zmq.Poller()
 poller.register(sys.stdin, zmq.POLLIN)
 poller.register(socket, zmq.POLLIN)
-flagEnvio=True
 
 
-
-
-#conection()
-
-##playerList.append(recibir())
-
-
-
-
-
-##print len(mapa.wallList)
 
 def main():
 
@@ -579,15 +549,16 @@ def main():
     screenSize = (304, 480)
     window = pygame.display.set_mode( screenSize, pygame.DOUBLEBUF | pygame.HWSURFACE )
 
-
-
-    #conection()
+    # dibujamos el mapa y generamos un background para no realizar el dibujado
+    # Multiples ocaciones
 
     mapa.draw(0)
     background = screen.copy()
 
 
+    #loop de juego pygame
     while 1:
+
         enviar()
         recibir()
 
@@ -600,73 +571,40 @@ def main():
                 return
 
 
-
+        #revisa movimiento
         CheckInputs()
-        if  player.canMove() :
 
+        #si se puede mover:
+        if  player.canMove() :
+            #el jugador se mueve
             player.Move()
+            #si es un pacman come pellets
             if player.identity == 0:
                 player.checkPellets()
 
         for p in playerList :
+            #si se puede mover:
             if  p.canMove() :
-
+                #el jugador se mueve
                 p.Move()
                 if p.identity == 0:
+                    #si es un pacman come pellets
                     p.checkPellets()
-
+            # si se encuentran 2 caracteres el pacman se vuelve fantasma
             if p.checkColl(player):
                 if p.identity == 1:
                     player.identity = 1
 
-
-
-        #if player2.checkColl(player):
-
-        #    if mode==0:
-        #        player.identity=1
-        #    elif mode==1:
-        #        player2.identity=0
-        #        print("cambio positivo")
-
-
-
+        ## dibujamos los pellets actuales
         mapa.drawPellets(0)
+        ## dibujamos al jugador de esta ventana
         player.Draw()
+        ## dibujamos a los demas jugadores
         for p in playerList :
             p.Draw()
-        #player2.Draw()
 
-
-
-
-
-        #print(len(playerList))
-        #for anothers in playerList:
-
-        #    anothers.Draw()
-
-
-
-
-
-        #player.Move()
-        #player.Draw()
-
-
-
-
-
-
-
-
-
-
-
+        # rutinario de pygame para visualizacion
         pygame.display.flip()
-
-
-
         clock.tick (60)
 
 
