@@ -554,13 +554,17 @@ def main():
 
     mapa.draw(0)
     background = screen.copy()
-
+    enviar()
+    recibir()
 
     #loop de juego pygame
     while 1:
-
         enviar()
-        recibir()
+        for p in playerList:
+            recibir()
+
+
+
 
 
         screen.blit(background,(0,0))
@@ -606,6 +610,7 @@ def main():
         # rutinario de pygame para visualizacion
         pygame.display.flip()
         clock.tick (60)
+
 
 
 
