@@ -1,4 +1,4 @@
-
+### creditos para forma de modelado del pacman :https://github.com/greyblue9/pacman-python
 #_________/  Librerias utilizadas \__________________________#
 
 ## Pygame Utility ##
